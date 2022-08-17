@@ -31,7 +31,7 @@ struct PacketFragment {
 pub struct A2SClient {
     socket: UdpSocket,
     #[cfg(feature = "async")]
-    timeout: Duration,
+    pub timeout: Duration,
     max_size: usize,
     app_id: u16,
 }
