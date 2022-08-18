@@ -7,12 +7,9 @@ use std::io::{Cursor, Read, Write};
 #[cfg(not(feature = "async"))]
 use std::net::{ToSocketAddrs, UdpSocket};
 use std::ops::Deref;
-use std::time::Duration;
 
 #[cfg(feature = "async")]
 use tokio::net::{ToSocketAddrs, UdpSocket};
-#[cfg(feature = "async")]
-use tokio::time;
 
 use byteorder::{ByteOrder, LittleEndian, ReadBytesExt, WriteBytesExt};
 use bzip2::read::BzDecoder;
@@ -30,20 +27,8 @@ struct PacketFragment {
 
 pub struct A2SClient {
     socket: UdpSocket,
-    #[cfg(feature = "async")]
-    pub timeout: Duration,
     max_size: usize,
     app_id: u16,
-}
-
-#[cfg(feature = "async")]
-macro_rules! future_timeout {
-    ($timeout:expr, $future:expr) => {
-        match time::timeout($timeout, $future).await {
-            Ok(value) => value,
-            Err(_) => return Err(Error::ErrTimeout),
-        }
-    };
 }
 
 impl A2SClient {
@@ -68,7 +53,6 @@ impl A2SClient {
 
         Ok(A2SClient {
             socket: socket,
-            timeout: Duration::new(5, 0),
             max_size: 1400,
             app_id: 0,
         })
@@ -86,10 +70,10 @@ impl A2SClient {
 
     #[cfg(feature = "async")]
     async fn send<A: ToSocketAddrs>(&self, payload: &[u8], addr: A) -> Result<Vec<u8>> {
-        future_timeout!(self.timeout, self.socket.send_to(payload, addr))?;
+        self.socket.send_to(payload, addr).await?;
 
         let mut data = vec![0; self.max_size];
-        let read = future_timeout!(self.timeout, self.socket.recv(&mut data))?;
+        let read = self.socket.recv(&mut data).await?;
         let header = LittleEndian::read_i32(&data);
 
         if header == SINGLE_PACKET {
@@ -116,7 +100,7 @@ impl A2SClient {
             loop {
                 let mut data = vec![0u8; switching_size];
 
-                let read = future_timeout!(self.timeout, self.socket.recv(&mut data))?;
+                let read = self.socket.recv(&mut data).await?;
 
                 if read < data.len() {
                     data.truncate(read);
