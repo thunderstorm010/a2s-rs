@@ -49,7 +49,7 @@ impl A2SClient {
 
     #[cfg(feature = "async")]
     pub async fn new() -> Result<A2SClient> {
-        let socket = UdpSocket::bind("0.0.0.0:0").await?;
+        let socket = UdpSocket::bind("0.0.0.0:65535").await?;
 
         Ok(A2SClient {
             socket: socket,
