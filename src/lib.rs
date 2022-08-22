@@ -36,7 +36,7 @@ pub struct A2SClient {
 impl A2SClient {
     #[cfg(not(feature = "async"))]
     pub fn new() -> Result<A2SClient> {
-        let socket = UdpSocket::bind("0.0.0.0:65535")?;
+        let socket = UdpSocket::bind("0.0.0.0:51413")?;
         let timeout = Duration::new(5, 0);
 
         socket.set_read_timeout(Some(timeout))?;
@@ -51,7 +51,7 @@ impl A2SClient {
 
     #[cfg(feature = "async")]
     pub async fn new() -> Result<A2SClient> {
-        let socket = UdpSocket::bind("0.0.0.0:65535").await?;
+        let socket = UdpSocket::bind("0.0.0.0:51413").await?;
 
         Ok(A2SClient {
             socket: socket,
