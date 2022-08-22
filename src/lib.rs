@@ -6,6 +6,8 @@ pub mod rules;
 use std::io::{Cursor, Read, Write};
 #[cfg(not(feature = "async"))]
 use std::net::{ToSocketAddrs, UdpSocket};
+#[cfg(not(feature = "async"))]
+use std::time::Duration;
 use std::ops::Deref;
 
 #[cfg(feature = "async")]
